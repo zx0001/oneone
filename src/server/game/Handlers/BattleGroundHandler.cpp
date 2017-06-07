@@ -448,6 +448,7 @@ void WorldSession::HandleBattleFieldPortOpcode(WorldPacket &recvData)
 
 				_player->SetBattlegroundId(bg->GetInstanceID(), bg->GetBgTypeID(), queueSlot, true, bgTypeId == BATTLEGROUND_RB, ginfo.teamId);
 
+				_player->SetBGTeam(ginfo.teamId);
 				sBattlegroundMgr->SendToBattleground(_player, ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
 			}
             break;

@@ -631,6 +631,7 @@ class Creature : public Unit, public GridObject<Creature>, public MovableMapObje
         void SetDefaultMovementType(MovementGeneratorType mgt) { m_defaultMovementType = mgt; }
 
         void RemoveCorpse(bool setSpawnTime = true, bool skipVisibility = false);
+		void ForcedDespawn(uint32 timeMSToDespawn = 0);
 
         void DespawnOrUnsummon(uint32 msTimeToDespawn = 0);
 
@@ -775,7 +776,7 @@ class Creature : public Unit, public GridObject<Creature>, public MovableMapObje
         bool CanAlwaysSee(WorldObject const* obj) const;
 
     private:
-		void ForcedDespawn(uint32 timeMSToDespawn = 0);
+		
 
         //WaypointMovementGenerator vars
         uint32 m_waypointID;

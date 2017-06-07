@@ -318,6 +318,10 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 return;
             }
 
+			if(!GetPlayer()->IsGameMaster())
+				if(GetPlayer()->SendBattleGroundChat(type, msg))
+					return;
+
             if (type == CHAT_MSG_SAY)
                 sender->Say(msg, lang);
             else if (type == CHAT_MSG_EMOTE)
@@ -456,7 +460,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 return;
 
             WorldPacket data;
-            ChatHandler::BuildChatPacket(data, CHAT_MSG_BATTLEGROUND, Language(lang), sender, NULL, msg);
+			ChatHandler::BuildChatPacket(data, CHAT_MSG_BATTLEGROUND, Language(LANG_UNIVERSAL), sender, NULL, msg);
             group->BroadcastPacket(&data, false);
         } break;
         case CHAT_MSG_BATTLEGROUND_LEADER:
@@ -467,7 +471,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 return;
 
             WorldPacket data;
-            ChatHandler::BuildChatPacket(data, CHAT_MSG_BATTLEGROUND_LEADER, Language(lang), sender, NULL, msg);
+			ChatHandler::BuildChatPacket(data, CHAT_MSG_BATTLEGROUND_LEADER, Language(LANG_UNIVERSAL), sender, NULL, msg);
             group->BroadcastPacket(&data, false);
         } break;
         case CHAT_MSG_CHANNEL:

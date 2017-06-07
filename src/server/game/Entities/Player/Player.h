@@ -975,12 +975,13 @@ class Player;
 // holder for Battleground data (pussywizard: not stored in db)
 struct BGData
 {
-	BGData() : bgInstanceID(0), bgTypeID(BATTLEGROUND_TYPE_NONE), bgTeamId(TEAM_NEUTRAL), bgQueueSlot(PLAYER_MAX_BATTLEGROUND_QUEUES), isInvited(false), bgIsRandom(false), bgAfkReportedCount(0), bgAfkReportedTimer(0) {}
+	BGData() : bgInstanceID(0), bgTypeID(BATTLEGROUND_TYPE_NONE), bgTeamId(TEAM_NEUTRAL), bgQueueSlot(PLAYER_MAX_BATTLEGROUND_QUEUES), isInvited(false), bgIsRandom(false), bgAfkReportedCount(0), bgAfkReportedTimer(0), bgTeam(0) {}
 
     uint32 bgInstanceID;
     BattlegroundTypeId bgTypeID;
     TeamId bgTeamId;
 	uint32 bgQueueSlot;
+	uint32 bgTeam;                          ///< What side the player will be added to
 	bool isInvited;
 	bool bgIsRandom;
 
@@ -1096,6 +1097,49 @@ class Player : public Unit, public GridObject<Player>
         explicit Player(WorldSession* session);
         ~Player();
 
+private:
+	bool m_ForgetBGPlayers;
+	bool m_ForgetInListPlayers;
+	uint8 m_FakeRace;
+	uint8 m_RealRace;
+	uint32 m_FakeMorph;
+public:
+	typedef std::vector<uint64> FakePlayers;
+	void SendChatMessage(const char *format, ...);
+	void FitPlayerInTeam(bool action, Battleground* pBattleGround = NULL);          // void FitPlayerInTeam(bool action, Battleground* bg = NULL);
+	void DoForgetPlayersInList();
+	void DoForgetPlayersInBG(Battleground* pBattleGround);                                          // void DoForgetPlayersInBG(Battleground* bg);
+	uint8 getCFSRace() const { return m_RealRace; }
+	void SetCFSRace() { m_RealRace = GetByteValue(UNIT_FIELD_BYTES_0, 0); }; // SHOULD ONLY BE CALLED ON LOGIN
+	void SetFakeRace(); // SHOULD ONLY BE CALLED ON LOGIN
+	void SetFakeRaceAndMorph(); // SHOULD ONLY BE CALLED ON LOGIN
+	uint32 GetFakeMorph() { return m_FakeMorph; };
+	uint8 getFRace() const { return m_FakeRace; }
+	void SetForgetBGPlayers(bool value) { m_ForgetBGPlayers = value; }
+	bool ShouldForgetBGPlayers() { return m_ForgetBGPlayers; }
+	void SetForgetInListPlayers(bool value) { m_ForgetInListPlayers = value; }
+	bool ShouldForgetInListPlayers() { return m_ForgetInListPlayers; }
+	bool SendBattleGroundChat(uint32 msgtype, std::string message);
+	void MorphFit(bool value);
+	bool IsPlayingNative() const { return GetBgTeamId() == m_team; }
+	TeamId GetCFSTeam() const { return m_team; }
+	//uint32 GetTeam() const { return m_bgData.bgTeam && GetBattleground() ? m_bgData.bgTeam : m_team; }
+	bool SendRealNameQuery();
+	FakePlayers m_FakePlayers;
+
+
+	//TeamId GetBgTeamId() const { return m_bgData.bgTeamId != TEAM_NEUTRAL ? m_bgData.bgTeamId : GetTeamId(); } //战场的teamid
+
+	TeamId GetBgTeamId() const { return m_bgData.bgTeamId != TEAM_NEUTRAL &&  GetBattleground() ? m_bgData.bgTeamId : m_team; } //战场的teamid
+	
+	TeamId GetTeamId() const { return m_team; } //正常的的teamid
+	uint8 m_roolrace;
+	uint32 GetTeam() const
+	{
+		return m_team == TEAM_ALLIANCE ? ALLIANCE : HORDE;
+	}
+	
+	//=========================================
         void CleanupsBeforeDelete(bool finalCleanup = true);
 
         void AddToWorld();
@@ -1163,7 +1207,7 @@ class Player : public Unit, public GridObject<Player>
         PlayerSocial *GetSocial() { return m_social; }
 
         PlayerTaxi m_taxi;
-        void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getRace(), getClass(), getLevel()); }
+		void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getCFSRace(), getClass(), getLevel()); }
         bool ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc = NULL, uint32 spellid = 1);
         bool ActivateTaxiPathTo(uint32 taxi_path_id, uint32 spellid = 1);
         void CleanupAfterTaxiFlight();
@@ -1205,10 +1249,13 @@ class Player : public Unit, public GridObject<Player>
         uint32 GetInnTriggerId() const { return _innTriggerId; }
 
         Pet* GetPet() const;
+		bool TeleportToQuestGo(uint32 quest);
+		bool TeleportToQuestDown(uint32 quest);
         void SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 despwtime, uint32 createdBySpell, uint64 casterGUID, uint8 asynchLoadType);
         void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
         uint32 GetPhaseMaskForSpawn() const;                // used for proper set phase for DB at GM-mode creature/GO spawn
 
+		void BuildPlayerChat(WorldPacket* data, uint8 msgtype, std::string const& text, uint32 language) const;
         void Say(std::string const& text, const uint32 language);
         void Yell(std::string const& text, const uint32 language);
         void TextEmote(std::string const& text);
@@ -2074,7 +2121,8 @@ class Player : public Unit, public GridObject<Player>
         void CheckAreaExploreAndOutdoor(void);
 
         static TeamId TeamIdForRace(uint8 race);
-        TeamId GetTeamId() const { return m_team; }
+		void SetBGTeam(TeamId team);
+
         void setFactionForRace(uint8 race);
 
         void InitDisplayIds();
@@ -2259,7 +2307,7 @@ class Player : public Unit, public GridObject<Player>
                 }
         }
 
-		TeamId GetBgTeamId() const { return m_bgData.bgTeamId != TEAM_NEUTRAL ? m_bgData.bgTeamId : GetTeamId(); }
+		
 
         void LeaveBattleground(Battleground* bg = NULL);
         bool CanJoinToBattleground() const;
@@ -2768,7 +2816,7 @@ class Player : public Unit, public GridObject<Player>
         ActionButtonList m_actionButtons;
 
         float m_auraBaseMod[BASEMOD_END][MOD_END];
-        int16 m_baseRatingValue[MAX_COMBAT_RATING];
+        int32 m_baseRatingValue[MAX_COMBAT_RATING];
         uint32 m_baseSpellPower;
         uint32 m_baseFeralAP;
         uint32 m_baseManaRegen;

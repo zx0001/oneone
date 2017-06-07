@@ -694,7 +694,6 @@ void WorldSession::HandleBuyItemInSlotOpcode(WorldPacket & recvData)
 
 void WorldSession::HandleBuyItemOpcode(WorldPacket & recvData)
 {
-    ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Received CMSG_BUY_ITEM");
     uint64 vendorguid;
     uint32 item, slot, count;
     uint8 unk1;
@@ -719,19 +718,15 @@ void WorldSession::HandleListInventoryOpcode(WorldPacket & recvData)
     if (!GetPlayer()->IsAlive())
         return;
 
-    ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Recvd CMSG_LIST_INVENTORY");
 
     SendListInventory(guid);
 }
 
 void WorldSession::SendListInventory(uint64 vendorGuid, uint32 vendorEntry)
 {
-    ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: Sent SMSG_LIST_INVENTORY");
-
     Creature* vendor = GetPlayer()->GetNPCIfCanInteractWith(vendorGuid, UNIT_NPC_FLAG_VENDOR);
     if (!vendor)
     {
-        ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: SendListInventory - Unit (GUID: %u) not found or you can not interact with him.", uint32(GUID_LOPART(vendorGuid)));
         _player->SendSellError(SELL_ERR_CANT_FIND_VENDOR, NULL, 0, 0);
         return;
     }

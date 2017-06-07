@@ -16475,7 +16475,7 @@ void Unit::Kill(Unit* killer, Unit* victim, bool durabilityLoss, WeaponAttackTyp
         if (killer->GetTypeId() == TYPEID_UNIT)
             victim->ToPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILLED_BY_CREATURE, killer->GetEntry());
         else if (victim != killer && killer->GetTypeId() == TYPEID_PLAYER)
-            victim->ToPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILLED_BY_PLAYER, 1, killer->ToPlayer()->GetTeamId());
+			victim->ToPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILLED_BY_PLAYER, 1, killer->ToPlayer()->GetBgTeamId());
     }
 
     // Hook for OnPVPKill Event

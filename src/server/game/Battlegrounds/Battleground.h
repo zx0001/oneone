@@ -325,6 +325,17 @@ class Battleground
 
         /* Battleground */
         // Get methods:
+
+		TeamId GetOtherTeam(TeamId teamId) const
+		{
+			if(teamId == TEAM_ALLIANCE)
+			{
+				return TEAM_HORDE;
+			}
+			else
+				return TEAM_ALLIANCE;
+		}
+
         char const* GetName() const         { return m_Name; }
         BattlegroundTypeId GetBgTypeID() const { return m_RealTypeID; }
         uint32 GetInstanceID() const        { return m_InstanceID; }
@@ -368,7 +379,7 @@ class Battleground
         void SetMaxPlayersPerTeam(uint32 MaxPlayers) { m_MaxPlayersPerTeam = MaxPlayers; }
         void SetMinPlayersPerTeam(uint32 MinPlayers) { m_MinPlayersPerTeam = MinPlayers; }
 
-		void DecreaseInvitedCount(TeamId teamId)    { ASSERT(m_BgInvitedPlayers[teamId] > 0); --m_BgInvitedPlayers[teamId]; }
+		void DecreaseInvitedCount(TeamId teamId)    { --m_BgInvitedPlayers[teamId]; }
 		void IncreaseInvitedCount(TeamId teamId)    { ++m_BgInvitedPlayers[teamId]; }
 		uint32 GetInvitedCount(TeamId teamId) const { return m_BgInvitedPlayers[teamId]; }
 
@@ -452,7 +463,7 @@ class Battleground
         void CastSpellOnTeam(uint32 spellId, TeamId teamId);
         void RemoveAuraOnTeam(uint32 spellId, TeamId teamId);
         void RewardHonorToTeam(uint32 honor, TeamId teamId);
-        void RewardReputationToTeam(uint32 factionId, uint32 reputation, TeamId teamId);
+		void RewardReputationToTeam(uint32 a_faction_id, uint32 h_faction_id, uint32 reputation, TeamId teamId);
 
         void UpdateWorldState(uint32 Field, uint32 Value);
         void UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player* player);

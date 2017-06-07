@@ -1059,6 +1059,8 @@ void World::LoadConfigSettings(bool reload)
 
     m_bool_configs[CONFIG_OFFHAND_CHECK_AT_SPELL_UNLEARN]            = sConfigMgr->GetBoolDefault("OffhandCheckAtSpellUnlearn", true);
 
+
+	m_bool_configs[CROSSFACTION_SYSTEM_BATTLEGROUNDS] = sConfigMgr->GetBoolDefault("CrossFactionSystem.Battlegrounds", true);
     if (int32 clientCacheId = sConfigMgr->GetIntDefault("ClientCacheVersion", 0))
     {
         // overwrite DB/old value
@@ -1821,7 +1823,7 @@ void World::SetInitialWorldSettings()
 
     uint32 startupDuration = GetMSTimeDiffToNow(startupBegin);
     sLog->outString();
-    sLog->outError("WORLD: World initialized in %u minutes %u seconds", (startupDuration / 60000), ((startupDuration % 60000) / 1000));
+	sLog->outBasic("WORLD: World initialized in %u minutes %u seconds", (startupDuration / 60000), ((startupDuration % 60000) / 1000));
     sLog->outString();
 
 	// possibly enable db logging; avoid massive startup spam by doing it here.
@@ -1848,11 +1850,12 @@ void World::DetectDBCLang()
         }
     }
 
+/*
     if (locale != GetDefaultDbcLocale())
     {
         sLog->outError("Unable to determine your DBC Locale! (corrupt DBC?)");
         exit(1);
-    }
+    }*/
 
     sLog->outString("Using %s DBC Locale as default. All available DBC locales: %s", localeNames[GetDefaultDbcLocale()], availableLocalsStr.empty() ? "<none>" : availableLocalsStr.c_str());
     sLog->outString();
@@ -2067,7 +2070,7 @@ void World::SendGlobalMessage(WorldPacket* packet, WorldSession* self, TeamId te
             itr->second->GetPlayer() &&
             itr->second->GetPlayer()->IsInWorld() &&
             itr->second != self &&
-            (teamId == TEAM_NEUTRAL || itr->second->GetPlayer()->GetTeamId() == teamId))
+			(teamId == TEAM_NEUTRAL || itr->second->GetPlayer()->GetBgTeamId() == teamId))
         {
             itr->second->SendPacket(packet);
         }
@@ -2085,7 +2088,7 @@ void World::SendGlobalGMMessage(WorldPacket* packet, WorldSession* self, TeamId 
             itr->second->GetPlayer()->IsInWorld() &&
             itr->second != self &&
             !AccountMgr::IsPlayerAccount(itr->second->GetSecurity()) &&
-            (teamId == TEAM_NEUTRAL || itr->second->GetPlayer()->GetTeamId() == teamId))
+			(teamId == TEAM_NEUTRAL || itr->second->GetPlayer()->GetBgTeamId() == teamId))
         {
             itr->second->SendPacket(packet);
         }
@@ -2209,7 +2212,7 @@ bool World::SendZoneMessage(uint32 zone, WorldPacket* packet, WorldSession* self
             itr->second->GetPlayer()->IsInWorld() &&
             itr->second->GetPlayer()->GetZoneId() == zone &&
             itr->second != self &&
-            (teamId == TEAM_NEUTRAL || itr->second->GetPlayer()->GetTeamId() == teamId))
+			(teamId == TEAM_NEUTRAL || itr->second->GetPlayer()->GetBgTeamId() == teamId))
         {
             itr->second->SendPacket(packet);
             foundPlayerToSend = true;

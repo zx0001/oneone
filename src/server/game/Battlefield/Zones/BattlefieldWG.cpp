@@ -583,7 +583,7 @@ void BattlefieldWG::OnCreatureCreate(Creature* creature)
 				Player* creator = ObjectAccessor::FindPlayer(creature->ToTempSummon()->GetSummonerGUID());
 				if (!creator)
 					return;
-                TeamId team = creator->GetTeamId();
+				TeamId team = creator->GetBgTeamId();
 
                 if (team == TEAM_HORDE)
                 {
@@ -710,7 +710,7 @@ void BattlefieldWG::HandleKill(Player* killer, Unit* victim)
         return;
 
     bool again = false;
-    TeamId killerTeam = killer->GetTeamId();
+	TeamId killerTeam = killer->GetBgTeamId();
 
 	// xinef: tower cannons also grant rank
 	if (victim->GetTypeId() == TYPEID_PLAYER || IsKeepNpc(victim->GetEntry()) || victim->GetEntry() == NPC_WINTERGRASP_TOWER_CANNON)
@@ -808,17 +808,17 @@ void BattlefieldWG::OnPlayerJoinWar(Player* player)
     player->CastSpell(player, SPELL_RECRUIT, true);
 	AddUpdateTenacity(player);
 
-    if (player->GetTeamId() == GetDefenderTeam())
+	if(player->GetBgTeamId() == GetDefenderTeam())
         player->TeleportTo(571, 5345, 2842, 410, 3.14f);
     else
     {
-        if (player->GetTeamId() == TEAM_HORDE)
+		if(player->GetBgTeamId() == TEAM_HORDE)
             player->TeleportTo(571, 5025.857422f, 3674.628906f, 362.737122f, 4.135169f);
         else
             player->TeleportTo(571, 5101.284f, 2186.564f, 373.549f, 3.812f);
     }
 
-    if (player->GetTeamId() == GetAttackerTeam())
+	if(player->GetBgTeamId() == GetAttackerTeam())
     {
         if (GetData(BATTLEFIELD_WG_DATA_BROKEN_TOWER_ATT) < 3)
             player->SetAuraStack(SPELL_TOWER_CONTROL, player, 3 - GetData(BATTLEFIELD_WG_DATA_BROKEN_TOWER_ATT));
@@ -865,7 +865,7 @@ void BattlefieldWG::OnPlayerEnterZone(Player* player)
     SendInitWorldStatesTo(player);
 
 	// xinef: Attacker, if hidden in relic room kick him out
-	if (player->GetTeamId() == GetAttackerTeam())
+	if(player->GetBgTeamId() == GetAttackerTeam())
 		if (player->GetPositionX() > 5400.0f && player->GetPositionX() < 5490.0f && player->GetPositionY() > 2803.0f && player->GetPositionY() < 2878.0f)
 			KickPlayerFromBattlefield(player->GetGUID());
 }
@@ -946,7 +946,7 @@ void BattlefieldWG::BrokenWallOrTower(TeamId team)
         for (GuidSet::const_iterator itr = m_PlayersInWar[GetAttackerTeam()].begin(); itr != m_PlayersInWar[GetAttackerTeam()].end(); ++itr)
         {
             if (Player* player = ObjectAccessor::FindPlayer(*itr))
-                IncrementQuest(player, WGQuest[player->GetTeamId()][2], true);
+                IncrementQuest(player, WGQuest[player->GetBgTeamId()][2], true);
         }
     }*/
 }
@@ -1092,7 +1092,7 @@ void BattlefieldWG::UpdateTenacity()
 	{
 		for (GuidSet::const_iterator itr = m_updateTenacityList.begin(); itr != m_updateTenacityList.end(); ++itr)
 			if (Player* newPlayer = ObjectAccessor::FindPlayer(*itr))
-				if ((newPlayer->GetTeamId() == TEAM_ALLIANCE && m_tenacityStack > 0) || (newPlayer->GetTeamId() == TEAM_HORDE && m_tenacityStack < 0))
+				if ((newPlayer->GetBgTeamId() == TEAM_ALLIANCE && m_tenacityStack > 0) || (newPlayer->GetBgTeamId() == TEAM_HORDE && m_tenacityStack < 0))
 				{
 					newStack = std::min(abs(newStack), 20);
 					uint32 buff_honor = GetHonorBuff(newStack);

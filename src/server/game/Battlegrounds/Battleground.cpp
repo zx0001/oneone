@@ -663,17 +663,36 @@ void Battleground::RewardHonorToTeam(uint32 honor, TeamId teamId)
             UpdatePlayerScore(itr->second, SCORE_BONUS_HONOR, honor);
 }
 
-void Battleground::RewardReputationToTeam(uint32 factionId, uint32 reputation, TeamId teamId)
+void Battleground::RewardReputationToTeam(uint32 a_faction_id, uint32 h_faction_id, uint32 reputation, TeamId teamId)
 {
-    if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId))
-        for (BattlegroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-            if (itr->second->GetBgTeamId() == teamId)
-			{
-				uint32 repGain = reputation;
-				AddPct(repGain, itr->second->GetTotalAuraModifier(SPELL_AURA_MOD_REPUTATION_GAIN));
-				AddPct(repGain, itr->second->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_FACTION_REPUTATION_GAIN, factionId));
-				itr->second->GetReputationMgr().ModifyReputation(factionEntry, repGain);
-			}
+	FactionEntry const* a_factionEntry = sFactionStore.LookupEntry(a_faction_id);
+	FactionEntry const* h_factionEntry = sFactionStore.LookupEntry(h_faction_id);
+
+	if(!a_factionEntry || !h_factionEntry)
+		return;
+
+	for(BattlegroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+	{
+		Player* player = ObjectAccessor::FindPlayer(itr->first);
+		{
+			if(!player)
+				continue;
+		}
+		if(player->GetBgTeamId() == teamId)
+		{
+			player->GetReputationMgr().ModifyReputation(player->GetTeam() == ALLIANCE ? a_factionEntry : h_factionEntry, reputation);
+		}
+	}
+	/*
+	for(BattlegroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+		if(itr->second->GetBgTeamId() == teamId)
+		{
+			uint32 repGain = reputation;
+			AddPct(repGain, itr->second->GetTotalAuraModifier(SPELL_AURA_MOD_REPUTATION_GAIN));
+			AddPct(repGain, itr->second->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_FACTION_REPUTATION_GAIN, itr->second->GetTeam() == ALLIANCE ? a_faction_id : h_faction_id));
+			itr->second->GetReputationMgr().ModifyReputation(itr->second->GetTeam() == ALLIANCE ? a_factionEntry : h_factionEntry, repGain);
+		}
+        */
 }
 
 void Battleground::UpdateWorldState(uint32 Field, uint32 Value)
@@ -1052,11 +1071,14 @@ void Battleground::RemovePlayerAtLeave(Player* player)
 				player->ScheduleDelayedOperation(DELAYED_SPELL_CAST_DESERTER);
     }
 
+	player->FitPlayerInTeam(false, this);
+
 	// Remove shapeshift auras
 	player->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
 
     player->SetBattlegroundId(0, BATTLEGROUND_TYPE_NONE, PLAYER_MAX_BATTLEGROUND_QUEUES, false, false, TEAM_NEUTRAL);
 
+	player->SetBGTeam(TeamId(2));
 	// Xinef: remove all criterias on bg leave
     player->ResetAchievementCriteria(ACHIEVEMENT_CRITERIA_CONDITION_BG_MAP, GetMapId(), true);
 }
@@ -1168,9 +1190,7 @@ void Battleground::AddPlayer(Player* player)
     // setup BG group membership
     PlayerAddedToBGCheckIfBGIsRunning(player);
     AddOrSetPlayerToCorrectBgGroup(player, teamId);
-
-    // Log
-    ;//sLog->outDetail("BATTLEGROUND: Player %s joined the battle.", player->GetName().c_str());
+	player->FitPlayerInTeam(true, this);
 }
 
 // this method adds player to his team's bg group, or sets his correct group if player is already in bg group

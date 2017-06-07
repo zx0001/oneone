@@ -147,7 +147,7 @@ void BattlegroundMgr::Update(uint32 diff)
 void BattlegroundMgr::BuildBattlegroundStatusPacket(WorldPacket* data, Battleground* bg, uint8 QueueSlot, uint8 StatusID, uint32 Time1, uint32 Time2, uint8 arenatype, TeamId teamId, bool isRated, BattlegroundTypeId forceBgTypeId)
 {
 	// pussywizard:
-	ASSERT(QueueSlot < PLAYER_MAX_BATTLEGROUND_QUEUES);
+	//ASSERT(QueueSlot < PLAYER_MAX_BATTLEGROUND_QUEUES);
 
     if (StatusID == STATUS_NONE || !bg)
     {
@@ -1072,7 +1072,7 @@ void BattlegroundMgr::InviteGroupToBG(GroupQueueInfo* ginfo, Battleground* bg, T
         WorldPacket data;
 
         uint32 queueSlot = player->GetBattlegroundQueueIndex(bgQueueTypeId);
-		ASSERT(queueSlot < PLAYER_MAX_BATTLEGROUND_QUEUES);
+		//ASSERT(queueSlot < PLAYER_MAX_BATTLEGROUND_QUEUES);
 
         // send status packet
 		sBattlegroundMgr->BuildBattlegroundStatusPacket(&data, bg, queueSlot, STATUS_WAIT_JOIN, INVITE_ACCEPT_WAIT_TIME, 0, ginfo->ArenaType, TEAM_NEUTRAL, bg->isRated(), ginfo->BgTypeId);
